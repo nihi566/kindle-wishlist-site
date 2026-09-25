@@ -88,7 +88,7 @@ h1 { margin-bottom: var(--space-xl); }
 .view-grid .book-table tr.book.hidden,
 .view-grid .book-table.hidden { display: none; }
 .view-grid .book-table td { display: block; padding: 0; border: none; }
-.view-grid .col-cover { display: flex; align-items: center; justify-content: center; height: 6.5rem; margin-bottom: var(--space-xs); }
+.view-grid .book-table td.col-cover { display: flex; align-items: center; justify-content: center; height: 4.75rem; margin-bottom: var(--space-xs); }
 .view-grid .col-cover:empty { background: var(--color-bg); border-radius: var(--radius-sm); }
 .view-grid .book-table td.col-title { font-size: var(--font-size-sm); line-height: 1.35; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
 .view-grid .col-asin, .view-grid .col-history { font-size: 0.625rem; white-space: normal; overflow-wrap: anywhere; }
@@ -96,7 +96,7 @@ h1 { margin-bottom: var(--space-xl); }
 .view-grid .col-history::before { content: "価格履歴: "; }
 .view-grid .col-price { font-size: 1rem; white-space: normal; overflow-wrap: anywhere; }
 .view-grid .col-tag { margin-top: auto; padding-top: var(--space-xs); white-space: normal; }
-.view-grid .tag-btn { padding: 0.1rem 0.35rem; font-size: 0.65rem; }
+.view-grid .tag-btn { min-height: 1.5rem; padding: 0.1rem 0.35rem; font-size: 0.65rem; }
 @media (min-width: 641px) {
   .view-grid .book-table tbody { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
 }
@@ -360,11 +360,12 @@ document.querySelectorAll('.book-table tbody tr.book').forEach(function (tr) {
   applyTagState(tr, getStoredTag(asin));
 
   td.addEventListener('click', function (e) {
+    // タグ欄内のタップはボタンを外しても Amazon へ遷移させない（小さいボタンの押し損じ対策）
+    e.stopPropagation();
     var btn = e.target.closest('.tag-btn');
     if (!btn) {
       return;
     }
-    e.stopPropagation();
     var next = tr.dataset.tag === btn.dataset.tag ? '' : btn.dataset.tag;
     applyTagState(tr, next);
     setStoredTag(asin, next);
