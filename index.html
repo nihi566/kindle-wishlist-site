@@ -72,23 +72,29 @@ h1 { margin-bottom: var(--space-xl); }
 .reset-btn:hover { background: var(--color-accent-hover); }
 .price-range-error { color: var(--color-price); font-size: var(--font-size-sm); width: 100%; margin: 0; }
 .active-filter-notice { color: var(--color-text); font-size: var(--font-size-sm); margin: 0 0 var(--space-sm); }
+.section-toolbar { display: flex; align-items: center; justify-content: space-between; gap: var(--space-sm); margin: 0 0 var(--space-sm); }
+.section-toolbar .result-count { margin: 0; }
+.view-toggle { display: flex; gap: var(--space-xs); }
+.view-toggle-btn { display: inline-flex; align-items: center; justify-content: center; width: 2.25rem; height: 2.25rem; padding: 0; cursor: pointer; border: 1px solid var(--color-border-light); border-radius: var(--radius-sm); background: var(--color-surface); color: var(--color-muted); }
+.view-toggle-btn[aria-pressed="true"] { background: var(--color-accent); border-color: var(--color-accent); color: #fff; }
+.view-toggle-btn svg { width: 1rem; height: 1rem; }
 @media (max-width: 640px) {
   .filter-btn, .reset-btn { min-height: 2.75rem; display: inline-flex; align-items: center; justify-content: center; }
   .search-input, .sort-select, .price-input { min-height: 2.75rem; }
-  .book-table thead { display: none; }
-  .book-table, .book-table tbody, .book-table tr, .book-table td { display: block; width: 100%; }
-  .book-table tr { border-bottom: 1px solid var(--color-border); padding: var(--space-md) 0; }
-  .book-table td { border-bottom: none; padding: var(--space-xs) var(--space-sm); }
-  .col-asin::before { content: "ASIN: "; }
-  .col-history::before { content: "価格履歴: "; }
-  .col-tag { margin-top: var(--space-xs); }
-  .book-table .hidden,
-  .book-table.hidden { display: none; }
+  .view-list .book-table thead { display: none; }
+  .view-list .book-table, .view-list .book-table tbody, .view-list .book-table tr, .view-list .book-table td { display: block; width: 100%; }
+  .view-list .book-table tr { border-bottom: 1px solid var(--color-border); padding: var(--space-md) 0; }
+  .view-list .book-table td { border-bottom: none; padding: var(--space-xs) var(--space-sm); }
+  .view-list .col-asin::before { content: "ASIN: "; }
+  .view-list .col-history::before { content: "価格履歴: "; }
+  .view-list .col-tag { margin-top: var(--space-xs); }
+  .view-list .book-table .hidden,
+  .view-list .book-table.hidden { display: none; }
 }
 
 </style>
 </head>
-<body>
+<body class="view-grid">
 <h1>蔵書リスト</h1>
 <div class="filter-bar" role="group" aria-label="表示する分類">
 <button type="button" class="filter-btn" data-target="section-all" aria-pressed="true">全部</button>
@@ -365,6 +371,63 @@ document.querySelectorAll('.book-table tbody tr.book').forEach(function (tr) {
     }
   });
 });
+
+var VIEW_STORAGE_KEY = 'book-view';
+var VIEW_LABELS = { grid: 'グリッド表示', list: 'リスト表示' };
+var VIEW_ICONS = {
+  grid: '<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/><rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg>',
+  list: '<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><rect x="1" y="2" width="14" height="2" rx="1"/><rect x="1" y="7" width="14" height="2" rx="1"/><rect x="1" y="12" width="14" height="2" rx="1"/></svg>'
+};
+
+function getStoredView() {
+  try {
+    return localStorage.getItem(VIEW_STORAGE_KEY) === 'list' ? 'list' : 'grid';
+  } catch (e) {
+    return 'grid';
+  }
+}
+
+function setStoredView(view) {
+  try {
+    localStorage.setItem(VIEW_STORAGE_KEY, view);
+  } catch (e) {}
+}
+
+function applyView(view) {
+  document.body.classList.toggle('view-grid', view === 'grid');
+  document.body.classList.toggle('view-list', view === 'list');
+  document.querySelectorAll('.view-toggle-btn').forEach(function (btn) {
+    btn.setAttribute('aria-pressed', btn.dataset.view === view ? 'true' : 'false');
+  });
+}
+
+document.querySelectorAll('.book-section .result-count').forEach(function (countEl) {
+  var toolbar = document.createElement('div');
+  toolbar.className = 'section-toolbar';
+  countEl.parentNode.insertBefore(toolbar, countEl);
+  toolbar.appendChild(countEl);
+
+  var group = document.createElement('div');
+  group.className = 'view-toggle';
+  group.setAttribute('role', 'group');
+  group.setAttribute('aria-label', '表示形式');
+  Object.keys(VIEW_LABELS).forEach(function (view) {
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'view-toggle-btn';
+    btn.dataset.view = view;
+    btn.setAttribute('aria-label', VIEW_LABELS[view]);
+    btn.innerHTML = VIEW_ICONS[view];
+    btn.addEventListener('click', function () {
+      applyView(view);
+      setStoredView(view);
+    });
+    group.appendChild(btn);
+  });
+  toolbar.appendChild(group);
+});
+
+applyView(getStoredView());
 
 </script>
 </body>
