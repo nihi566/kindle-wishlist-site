@@ -430,7 +430,11 @@ document.querySelectorAll('.book-table tbody tr.book').forEach(function (tr) {
       applyTagState(row, next);
     });
     setStoredTag(asin, next);
+    // 並べ替えで行を入れ直すとフォーカスが外れるため、押したボタンが見えたままなら戻す（キーボード操作向け）
     applyControls();
+    if (!btn.closest('.hidden')) {
+      btn.focus();
+    }
   });
   td.addEventListener('keydown', function (e) {
     if (e.target.closest('.tag-btn')) {
